@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1a1a2e">
+    <meta name="description" content="日本驾照考试模拟练习 - 完整题库，支持离线使用">
+    <title>日本驾照考试 - 模拟练习</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p>加载中...</p>
+        </div>
+    </div>
+
+```
+<!-- Main App Container -->
+<div id="app" class="app-container">
+    <!-- Home Screen -->
+    <div id="home-screen" class="screen active">
+        <div class="home-header">
+            <div class="logo-container">
+                <div class="logo-icon">🚗</div>
+                <h1 class="app-title">日本驾照考试</h1>
+                <p class="app-subtitle">外免切替 完整题库练习</p>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="total-practiced">0</div>
+                <div class="stat-label">已练习</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="total-correct">0%</div>
+                <div class="stat-label">正确率</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="wrong-count">0</div>
+                <div class="stat-label">错题数</div>
+            </div>
+        </div>
+
+        <div class="mode-selection">
+            <button class="mode-btn practice-mode" onclick="startMode('practice')">
+                <span class="mode-icon">📚</span>
+                <div class="mode-info">
+                    <h3>练习模式</h3>
+                    <p>随机题库，边做边学</p>
+                </div>
+            </button>
+
+            <button class="mode-btn exam-mode" onclick="startMode('exam')">
+                <span class="mode-icon">✍️</span>
+                <div class="mode-info">
+                    <h3>模拟考试</h3>
+                    <p>50题 · 90%合格 · 45分钟</p>
+                </div>
+            </button>
+
+            <button class="mode-btn wrong-mode" onclick="startMode('wrong')" id="wrong-mode-btn">
+                <span class="mode-icon">❌</span>
+                <div class="mode-info">
+                    <h3>错题本</h3>
+                    <p id="wrong-mode-desc">暂无错题</p>
+                </div>
+            </button>
+
+            <button class="mode-btn settings-btn" onclick="showSettings()">
+                <span class="mode-icon">⚙️</span>
+                <div class="mode-info">
+                    <h3>设置</h3>
+                    <p>题库管理 · 数据重置</p>
+                </div>
+            </button>
+        </div>
+
+        <div class="home-footer">
+            <p class="version-info">题库版本 v2.0 · 500题完整版</p>
+        </div>
+    </div>
+
+    <!-- Quiz Screen -->
+    <div id="quiz-screen" class="screen">
+        <div class="quiz-header">
+            <button class="back-btn" onclick="exitQuiz()">← 退出</button>
+            <div class="progress-info">
+                <span id="question-counter">1/50</span>
+                <span id="timer" class="timer"></span>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+
+        <div class="quiz-content">
+            <div class="question-card">
+                <div class="question-image" id="question-image"></div>
+                <h2 class="question-text" id="question-text"></h2>
+                <div class="options-container" id="options-container"></div>
+            </div>
+
+            <div class="feedback-section" id="feedback-section">
+                <div class="feedback-content">
+                    <div class="feedback-result" id="feedback-result"></div>
+                    <div class="feedback-explanation" id="feedback-explanation"></div>
+                    <button class="next-btn" onclick="nextQuestion()">下一题 →</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Screen -->
+    <div id="result-screen" class="screen">
+        <div class="result-container">
+            <div class="result-header">
+                <div class="result-icon" id="result-icon">🎉</div>
+                <h2 class="result-title" id="result-title">恭喜通过！</h2>
+            </div>
+
+            <div class="result-score">
+                <div class="score-circle">
+                    <svg class="score-svg" viewBox="0 0 200 200">
+                        <circle class="score-bg" cx="100" cy="100" r="90"></circle>
+                        <circle class="score-fill" id="score-circle" cx="100" cy="100" r="90"></circle>
+                    </svg>
+                    <div class="score-text">
+                        <div class="score-number" id="score-number">0%</div>
+                        <div class="score-label" id="score-label">正确率</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-details">
+                <div class="detail-row">
+                    <span>正确</span>
+                    <span class="detail-value correct" id="correct-count">0</span>
+                </div>
+                <div class="detail-row">
+                    <span>错误</span>
+                    <span class="detail-value wrong" id="wrong-count-result">0</span>
+                </div>
+                <div class="detail-row">
+                    <span>总题数</span>
+                    <span class="detail-value" id="total-count">0</span>
+                </div>
+            </div>
+
+            <div class="result-actions">
+                <button class="result-btn primary" onclick="reviewWrong()">查看错题</button>
+                <button class="result-btn secondary" onclick="goHome()">返回首页</button>
+                <button class="result-btn secondary" onclick="retryQuiz()">再来一次</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Screen -->
+    <div id="settings-screen" class="screen">
+        <div class="settings-container">
+            <div class="settings-header">
+                <button class="back-btn" onclick="hideSettings()">← 返回</button>
+                <h2>设置</h2>
+            </div>
+
+            <div class="settings-content">
+                <div class="settings-section">
+                    <h3>数据管理</h3>
+                    <button class="settings-btn" onclick="clearWrongAnswers()">
+                        <span>清空错题本</span>
+                        <span class="btn-icon">🗑️</span>
+                    </button>
+                    <button class="settings-btn" onclick="clearAllData()">
+                        <span>重置所有数据</span>
+                        <span class="btn-icon">⚠️</span>
+                    </button>
+                </div>
+
+                <div class="settings-section">
+                    <h3>关于</h3>
+                    <div class="about-info">
+                        <p><strong>日本驾照考试练习</strong></p>
+                        <p>版本: 2.0</p>
+                        <p>题库: 500题完整版</p>
+                        <p>支持离线使用</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="questions.js"></script>
+<script src="app.js"></script>
+<script>
+    // PWA Service Worker Registration
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('Service Worker registered'))
+                .catch(err => console.log('Service Worker registration failed'));
+        });
+    }
+</script>
+```
+
+</body>
+</html>
